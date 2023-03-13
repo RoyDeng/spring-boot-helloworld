@@ -1,8 +1,11 @@
 plugins {
 	id 'java'
+	id 'application'
 	id 'org.springframework.boot' version '2.7.9'
 	id 'io.spring.dependency-management' version '1.1.0'
 }
+
+mainClassName = 'com.roydevelop.helloworld.HelloworldApplication'
 
 group = 'com.roydevelop'
 version = '0.0.1-SNAPSHOT'
@@ -12,12 +15,18 @@ repositories {
 	mavenCentral()
 }
 
+jar {
+    archiveBaseName = 'gs-gradle'
+    archiveVersion =  '0.1.0'
+}
+
 dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
 	implementation 'org.springframework.boot:spring-boot-starter-data-rest'
 	implementation 'org.springframework.boot:spring-boot-starter-web'
 	implementation 'org.slf4j:slf4j-api:1.7.25'
 	implementation 'org.modelmapper:modelmapper:2.1.1'
+	implementation 'mysql:mysql-connector-java:8.0.32'
 	compileOnly 'org.projectlombok:lombok:0.11.0'
 	implementation 'javax.validation:validation-api:2.0.1.Final'
 	runtimeOnly 'com.h2database:h2'
