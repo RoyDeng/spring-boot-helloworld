@@ -27,8 +27,12 @@ dependencies {
 	implementation 'org.slf4j:slf4j-api:1.7.25'
 	implementation 'org.modelmapper:modelmapper:2.1.1'
 	implementation 'mysql:mysql-connector-java:8.0.32'
-	compileOnly 'org.projectlombok:lombok:0.11.0'
+	implementation 'org.springframework.boot:spring-boot-starter-data-redis:2.7.9'
+	implementation 'com.google.guava:guava:31.0.1-jre'
+	compileOnly 'org.projectlombok:lombok:1.18.26'
+	annotationProcessor 'org.projectlombok:lombok:1.18.26'
 	implementation 'javax.validation:validation-api:2.0.1.Final'
+	implementation 'org.apache.commons:commons-lang3:3.12.0'
 	runtimeOnly 'com.h2database:h2'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 }
