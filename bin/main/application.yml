@@ -11,3 +11,10 @@ spring:
     url: jdbc:mysql://mysql:3306/helloworlddb?useUnicode=true&characterEncoding=UTF-8&serverTimezone=UTC
     username: ${MYSQL_USER}
     password: ${MYSQL_PASSWORD}
+  redis:
+    cluster:
+      nodes: redis-service.redis-cluster.svc.cluster.local:6379
+      timeout: 2000
+      max-redirects: 7
+logging:
+  config: classpath:logback-spring.xml

@@ -11,11 +11,11 @@ import lombok.*;
 @NoArgsConstructor
 @RequiredArgsConstructor
 @Entity
-@Table(name = "users")
+@Table(name = "user")
 public class User {
     @Id
-	@Column(name = "uid", unique = true, nullable = false, length = 50)
-	private String mid;
+	@Column(name = "uid", unique = true, nullable = false)
+	private Integer uid;
 	@NonNull
     @NotEmpty
 	@Column(name = "email", unique = true, nullable = false, length = 50)
