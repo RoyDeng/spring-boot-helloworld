@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: helloworld-deployment
+  namespace: helloworld-cluster
+  labels:
+    app: helloworld-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: helloworld-app
+  template:
+    metadata:
+      labels:
+        app: helloworld-app
+    spec:
+      containers:
+      - name: helloworld-app
+        image: roydeng0428/helloworld-java:1.0.0
+        ports:
+          - containerPort: 8080
+        env:
+          - name: MYSQL_HOST
+            value: mysql
+          - name: MYSQL_DATABASE_NAME
+            value: helloworlddb
+          - name: MYSQL_USER
+            value: 
+          - name: MYSQL_PASSWORD
+            value: 
+        imagePullPolicy: Always
