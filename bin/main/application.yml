@@ -7,10 +7,20 @@ spring:
       ddl-auto: update
     database-platform: org.hibernate.dialect.MySQL8Dialect
   datasource:
-    driver-class-name: com.mysql.jdbc.Driver
-    url: jdbc:mysql://${MYSQL_HOST:localhost}:3306/${MYSQL_DATABASE_NAME}?useUnicode=true&characterEncoding=UTF-8&serverTimezone=UTC
-    username: ${MYSQL_USER}
-    password: ${MYSQL_PASSWORD}
+    type: com.zaxxer.hikari.HikariDataSource
+    hikari:
+      master:
+        name: master
+        driver-class-name: com.mysql.jdbc.Driver
+        url: jdbc:mysql://${MYSQL_HOST:localhost}:3306/${MYSQL_DATABASE_NAME}?useUnicode=true&characterEncoding=UTF-8&serverTimezone=UTC
+        username: ${MYSQL_USER}
+        password: ${MYSQL_PASSWORD}
+      slave:
+        name: slave
+        driver-class-name: com.mysql.jdbc.Driver
+        url: jdbc:mysql://${MYSQL_HOST:localhost}:3306/${MYSQL_DATABASE_NAME}?useUnicode=true&characterEncoding=UTF-8&serverTimezone=UTC
+        username: ${MYSQL_USER}
+        password: ${MYSQL_PASSWORD}
   redis:
     cluster:
       nodes: redis-service.redis-cluster.svc.cluster.local:6379
