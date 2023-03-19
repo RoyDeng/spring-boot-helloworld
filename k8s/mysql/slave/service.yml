@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: mysql-slave-front
+  labels:
+    app: mysql-slave
+  namespace: helloworld-cluster
+spec:
+  selector:
+    app: mysql-slave
+  type: NodePort
+  ports:
+    - name: ''
+      port: 3306
+      protocol: TCP
+      targetPort: 3306
+      nodePort: 30002
+  sessionAffinity: None

@@ -1,0 +1,74 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  namespace: helloworld-cluster
+  labels:
+    app: mysql-master
+  name: mysql-master
+  annotations:
+    kubesphere.io/alias-name: mysql master
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mysql-master
+  template:
+    metadata:
+      labels:
+        app: mysql-master
+    spec:
+      containers:
+        - name: master-container
+         # type: worker
+          imagePullPolicy: IfNotPresent
+          resources:
+            requests:
+              cpu: '2'
+              memory: 8Gi
+            limits:
+              cpu: '4'
+              memory: 16Gi
+          image: nexus.cmss.com:8086/cnp/mysql:8.0.18
+          env:
+            - name: MYSQL_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mysql-secret
+                  key: MYSQL_ROOT_PASSWORD
+          command:
+            - bash
+            - "-c"
+            - |
+              set -e
+              mysql_net=$(ip route | awk '$1=="default" {print $3}' | sed "s/\.[0-9]\+$/.%/g")
+              MYSQL_PWD=${MYSQL_ROOT_PASSWORD} mysql -u root \
+              -e "CREATE USER '${MYSQL_REPLICATION_USER}'@'${mysql_net}' IDENTIFIED BY '${MYSQL_REPLICATION_PASSWORD}'; \
+              GRANT REPLICATION SLAVE ON *.* TO '${MYSQL_REPLICATION_USER}'@'${mysql_net}';"
+          volumeMounts:
+            - name: master-cnf-volume
+              readOnly: false
+              mountPath: /etc/mysql
+            - name: master-data-volume
+              readOnly: false
+              mountPath: /var/lib/mysql-files
+      serviceAccount: default
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                labelSelector:
+                  matchLabels:
+                    app: mysql-master
+                topologyKey: kubernetes.io/hostname
+      volumes:
+        - name: master-cnf-volume
+          configMap:
+            name: mysql-master-cnf
+            items:
+              - key: my.cnf
+                path: my.cnf
+        - name: master-data-volume
+          persistentVolumeClaim:
+            claimName: mysql-pvc-master
+  serviceName: mysql-master
