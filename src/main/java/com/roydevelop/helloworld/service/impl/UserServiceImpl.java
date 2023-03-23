@@ -1,9 +1,14 @@
 package com.roydevelop.helloworld.service.impl;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Slice;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.roydevelop.helloworld.annotation.Cacheable;
@@ -13,8 +18,7 @@ import com.roydevelop.helloworld.executor.ThreadPoolExecutorUtil;
 import com.roydevelop.helloworld.model.User;
 import com.roydevelop.helloworld.repo.UserRepository;
 import com.roydevelop.helloworld.service.UserService;
-import com.roydevelop.helloworld.utils.RedisUsing.BloomFilterUtils;
-import com.roydevelop.helloworld.utils.security.MD5;
+import com.roydevelop.helloworld.utils.redisusing.BloomFilterUtils;
 
 @Service
 public class UserServiceImpl implements UserService {
@@ -33,23 +37,26 @@ public class UserServiceImpl implements UserService {
     @Autowired
     private BloomFilterUtils bloomFilterUtils;
 
+    @Autowired
+    PasswordEncoder encoder;
+
     @Override
     public int insertUser(User user) {
         return userMapper.insert(user);
     }
 
     @Override
-    public int deleteByUid(Integer id) {
+    public int deleteById(Long id) {
         return userMapper.deleteByPrimaryKey(id);
     }
 
     @Override
-    public int updateByUid(User user) {
+    public int updateById(User user) {
         return userMapper.updateByPrimaryKey(user);
     }
 
     @Override
-    public User selectByUid(Integer id) throws Exception {
+    public User selectById(Long id) throws Exception {
         boolean hasKey = bloomFilterUtils.checkBloomFilter(String.valueOf(id), id);
 
         if (!hasKey) {
@@ -69,18 +76,13 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public List<User> selectByName(String email) {
-        return userMapper.selectByEmail(email);
+    @Cacheable(cacheName = "user", key = "#id", capacity = 3)
+    public User checkUser(String username, String password) {
+        return userMapper.selectByUsernameAndPassword(username, encoder.encode(password));
     }
 
     @Override
-    @Cacheable(cacheName = "user", key = "#uid", capacity = 3)
-    public User checkUser(String email, String password) {
-        return userMapper.selectByEmailAndPassword(email, MD5.code(password));
-    }
-
-    @Override
-    public List<User> selectAllUserAsync() {
+    public List<User> selectAllUsersAsync() {
         for (int i = 0; i < 20000; i++) {
             TaskThread taskThread = new TaskThread(userRepository);
             threadPoolExecutorUtil.executeTask(taskThread);
@@ -93,7 +95,21 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public List<User> selectAllUser() {
-        return userRepository.findAll();
+    public List<User> selectAllUsers() {
+        int pagNbr = 0;
+        Slice<User> userSlice;
+        List<User> usertList = new ArrayList<>();
+
+        do {
+            PageRequest pageRequest = PageRequest.of(pagNbr, 50);
+            userSlice = userRepository.findAllBySlice(pageRequest);
+            pagNbr += 1;
+
+            if (userSlice != null) {
+                usertList.addAll(userSlice.stream().collect(Collectors.toList()));
+            }
+        } while (userSlice != null && userSlice.hasNext());
+
+        return usertList;
     }
 }

@@ -1,9 +1,15 @@
 package com.roydevelop.helloworld.model;
 
 import java.util.Date;
+import java.util.HashSet;
+import java.util.Set;
 
 import javax.persistence.*;
-import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.Email;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.Size;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import lombok.*;
 
@@ -11,29 +17,47 @@ import lombok.*;
 @NoArgsConstructor
 @RequiredArgsConstructor
 @Entity
-@Table(name = "user")
+@Table(
+	name = "users",
+	uniqueConstraints = { 
+		@UniqueConstraint(columnNames = "username"),
+		@UniqueConstraint(columnNames = "email") 
+	}
+)
 public class User {
     @Id
-	@Column(name = "uid", unique = true, nullable = false)
-	private Integer uid;
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+  	private Long id;
+
 	@NonNull
-    @NotEmpty
-	@Column(name = "email", unique = true, nullable = false, length = 50)
+	@NotBlank
+	@Size(max = 20)
+	private String username;
+
+	@NonNull
+	@NotBlank
+	@Size(max = 50)
+	@Email
 	private String email;
+
 	@NonNull
-    @NotEmpty
-	@Column(name = "password", nullable = false, length = 50)
+	@NotBlank
+	@Size(max = 120)
+	@JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
 	private String password;
-	@NonNull
-    @NotEmpty
-	@Column(name = "first_name", nullable = false, length = 50)
-	private String firstName;
-	@NonNull
-    @NotEmpty
-	@Column(name = "last_name", nullable = false, length = 50)
-	private String lastName;
+
 	@Column(name = "create_time")
 	private Date createTime;
+
 	@Column(name = "update_time")
 	private Date updateTime;
+
+	@NonNull
+	@ManyToMany(fetch = FetchType.LAZY)
+  	@JoinTable(
+		name = "user_roles", 
+        joinColumns = @JoinColumn(name = "user_id"), 
+        inverseJoinColumns = @JoinColumn(name = "role_id")
+	)
+  	private Set<Role> roles = new HashSet<>();
 }

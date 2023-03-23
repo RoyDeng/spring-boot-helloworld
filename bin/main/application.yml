@@ -26,5 +26,34 @@ spring:
       nodes: redis-service.redis-cluster.svc.cluster.local:6379
       timeout: 2000
       max-redirects: 7
+  rabbitmq:
+    host: 
+    port: 5672
+    username: 
+    password: 
+    publisher-confirms: true
+    publisher-returns: true
+    listener:
+      simple:
+        acknowledge-mode: manual
+        prefetch: 100
+  mail:
+    host: 
+    username: 
+    password: 
+    from: 
+    properties:
+      mail.smtp.auth: true
+      mail.smtp.starttls.enable: true
+      mail.smtp.starttls.required: true
+      mail.smtp.socketFactory.port: 465
+      mail.smtp.socketFactory.class: javax.net.ssl.SSLSocketFactory
+      mail.smtp.socketFactory.fallback: false
+    port: 465
+    protocol: smtp
 logging:
   config: classpath:logback-spring.xml
+helloworld:
+  app:
+    jwtSecret: helloWorldSecretKey
+    jwtExpirationMs: 86400000

@@ -1,31 +1,27 @@
 package com.roydevelop.helloworld.dao;
 
-import java.util.List;
+import javax.persistence.LockModeType;
 
 import org.apache.ibatis.annotations.*;
+import org.springframework.data.jpa.repository.Lock;
 
 import com.roydevelop.helloworld.model.User;
 
 @Mapper
 public interface UserMapper {
-    @Insert("insert into user(email,password,create_time) values (#{email},#{password},now())")
+    @Insert("INSERT INTO users(username, email, password, create_time) values (#{username}, #{email}, #{password}, now())")
     public int insert(User user);
 
-    @Update("update user set email=#{email},password=#{password},update_date=now() where uid=#{uid}")
+    @Update("UPDATE users SET email=#{email}, update_date=now() where id=#{id}")
     int updateByPrimaryKey(User user);
 
-    @Delete("delete from user where uid=#{uid}")
-    int deleteByPrimaryKey(@Param("uid")int uid);
+    @Delete("DELETE FROM users WHERE id=#{id}")
+    int deleteByPrimaryKey(@Param("id") long id);
 
-    @Select("SELECT * FROM user where email=#{email}")
-    List<User> selectByEmail(@Param("email") String email);
+    @Lock(LockModeType.PESSIMISTIC_READ)
+    @Select("SELECT * FROM users WHERE id=#{id}")
+    User selectByPrimaryKey(@Param("id") long id);
 
-    @Select("SELECT * FROM user where uid=#{uid}")
-    User selectByPrimaryKey(@Param("uid")int uid);
-
-    @Select("SELECT * FROM user where email=#{email} and password=#{passWord}")
-    User selectByEmailAndPassword(@Param("email") String username,@Param("passWord") String password);
-
-    @Select("SELECT * FROM user order by uid desc")
-    List<User> selectAllUser();
+    @Select("SELECT * FROM users WHERE username=#{userName} and password=#{passWord}")
+    User selectByUsernameAndPassword(@Param("userName") String username, @Param("passWord") String password);
 }
