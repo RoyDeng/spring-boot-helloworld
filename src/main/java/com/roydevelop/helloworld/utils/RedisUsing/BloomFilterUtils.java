@@ -1,10 +1,10 @@
-package com.roydevelop.helloworld.utils.RedisUsing;
+package com.roydevelop.helloworld.utils.redisusing;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.roydevelop.helloworld.config.BloomFilter.BloomFilterHelper;
-import com.roydevelop.helloworld.config.BloomFilter.RedisBloomFilter;
+import com.roydevelop.helloworld.config.bloomfilter.BloomFilterHelper;
+import com.roydevelop.helloworld.config.bloomfilter.RedisBloomFilter;
 
 @Component
 public class BloomFilterUtils {

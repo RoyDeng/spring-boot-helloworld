@@ -1,4 +1,4 @@
-package com.roydevelop.helloworld.config.DataSource;
+package com.roydevelop.helloworld.config.datasource;
 
 import java.util.ArrayList;
 import java.util.List;

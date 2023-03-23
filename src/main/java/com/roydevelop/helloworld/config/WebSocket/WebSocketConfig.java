@@ -1,4 +1,4 @@
-package com.roydevelop.helloworld.config.WebSocket;
+package com.roydevelop.helloworld.config.websocket;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

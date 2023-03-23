@@ -1,4 +1,4 @@
-package com.roydevelop.helloworld.config.DataSource;
+package com.roydevelop.helloworld.config.datasource;
 
 import java.util.HashMap;
 import java.util.Map;

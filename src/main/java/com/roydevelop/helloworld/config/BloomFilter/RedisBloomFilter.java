@@ -1,4 +1,4 @@
-package com.roydevelop.helloworld.config.BloomFilter;
+package com.roydevelop.helloworld.config.bloomfilter;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;

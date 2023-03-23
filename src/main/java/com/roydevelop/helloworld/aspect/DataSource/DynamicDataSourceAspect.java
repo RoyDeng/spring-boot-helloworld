@@ -1,4 +1,4 @@
-package com.roydevelop.helloworld.aspect.DataSource;
+package com.roydevelop.helloworld.aspect.datasource;
 
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.annotation.After;
@@ -9,7 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
-import com.roydevelop.helloworld.config.DataSource.DynamicDataSourceContextHolder;
+import com.roydevelop.helloworld.config.datasource.DynamicDataSourceContextHolder;
 
 @Aspect
 @Component

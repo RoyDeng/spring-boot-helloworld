@@ -1,4 +1,4 @@
-package com.roydevelop.helloworld.config.BloomFilter;
+package com.roydevelop.helloworld.config.bloomfilter;
 
 import com.google.common.base.Preconditions;
 import com.google.common.hash.Funnel;

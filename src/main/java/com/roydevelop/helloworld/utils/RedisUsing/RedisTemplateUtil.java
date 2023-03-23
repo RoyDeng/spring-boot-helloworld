@@ -1,4 +1,4 @@
-package com.roydevelop.helloworld.utils.RedisUsing;
+package com.roydevelop.helloworld.utils.redisusing;
 
 import java.util.concurrent.TimeUnit;
 

@@ -1,4 +1,4 @@
-package com.roydevelop.helloworld.config.RedisCluster;
+package com.roydevelop.helloworld.config.rediscluster;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -25,7 +25,7 @@ import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.PropertyAccessor;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.hash.Funnel;
-import com.roydevelop.helloworld.config.BloomFilter.BloomFilterHelper;
+import com.roydevelop.helloworld.config.bloomfilter.BloomFilterHelper;
 
 @Configuration
 public class RedisConfig {

@@ -1,4 +1,4 @@
-package com.roydevelop.helloworld.config.DataSource;
+package com.roydevelop.helloworld.config.datasource;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
