@@ -1,7 +1,5 @@
 package com.roydevelop.helloworld.service.impl;
 
-import javax.transaction.Transactional;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -10,6 +8,8 @@ import org.springframework.stereotype.Service;
 
 import com.roydevelop.helloworld.model.User;
 import com.roydevelop.helloworld.repo.UserRepository;
+
+import jakarta.transaction.Transactional;
 
 @Service
 public class UserDetailsServiceImpl implements UserDetailsService {

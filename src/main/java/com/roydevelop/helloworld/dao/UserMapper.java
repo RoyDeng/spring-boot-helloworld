@@ -1,11 +1,11 @@
 package com.roydevelop.helloworld.dao;
 
-import javax.persistence.LockModeType;
-
 import org.apache.ibatis.annotations.*;
 import org.springframework.data.jpa.repository.Lock;
 
 import com.roydevelop.helloworld.model.User;
+
+import jakarta.persistence.LockModeType;
 
 @Mapper
 public interface UserMapper {

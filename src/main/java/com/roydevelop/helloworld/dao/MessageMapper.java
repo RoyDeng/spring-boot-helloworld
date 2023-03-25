@@ -3,8 +3,6 @@ package com.roydevelop.helloworld.dao;
 import java.util.Date;
 import java.util.List;
 
-import javax.persistence.LockModeType;
-
 import org.apache.ibatis.annotations.Insert;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Select;
@@ -13,6 +11,8 @@ import org.springframework.data.jpa.repository.Lock;
 
 import com.roydevelop.helloworld.model.EMessageType;
 import com.roydevelop.helloworld.model.Message;
+
+import jakarta.persistence.LockModeType;
 
 @Mapper
 public interface MessageMapper {

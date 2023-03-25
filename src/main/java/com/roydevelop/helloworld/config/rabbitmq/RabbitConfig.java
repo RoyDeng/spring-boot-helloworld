@@ -32,14 +32,14 @@ public class RabbitConfig {
             }
         });
         rabbitTemplate.setMandatory(true);
-        rabbitTemplate.setReturnCallback((message, replyCode, replyText, exchange, routingKey) -> {
+        rabbitTemplate.setReturnsCallback(returned -> {
             logger.info(
                 "Failed to route messages from Exchange to Queue: exchange: {}, route: {}, replyCode: {}, replyText: {}, message: {}",
-                exchange,
-                routingKey,
-                replyCode,
-                replyText,
-                message
+                returned.getExchange(),
+                returned.getRoutingKey(),
+                returned.getReplyCode(),
+                returned.getReplyText(),
+                returned.getMessage()
             );
         });
         return rabbitTemplate;

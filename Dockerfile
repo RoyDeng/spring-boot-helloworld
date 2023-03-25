@@ -1,9 +1,9 @@
-FROM gradle:7.6.1 AS build
+FROM gradle:8.0.2 AS build
 COPY --chown=gradle:gradle . /home/gradle/src
 WORKDIR /home/gradle/src
 RUN gradle build --no-daemon 
 
-FROM adoptopenjdk/openjdk11:jdk-11.0.2.9-slim
+FROM openjdk:17-jdk-slim-buster
 
 ENV PORT 8080
 
