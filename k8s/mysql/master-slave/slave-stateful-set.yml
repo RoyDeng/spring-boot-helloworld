@@ -1,0 +1,180 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: mysql-slave
+  namespace: helloworld
+spec:
+  selector:
+    matchLabels:
+      app: mysql-slave
+  serviceName: mysql-slave
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: mysql-slave
+    spec:
+      initContainers:
+      - name: init-mysql
+        image: mysql:8.0.32
+        command:
+        - bash
+        - "-c"
+        - |
+          set -ex
+          [[ $HOSTNAME =~ -([0-9]+)$ ]] || exit 1
+          mkdir -p /mnt/mysql/conf.d
+          echo [mysqld] > /mnt/mysql/conf.d/server-id.cnf
+          echo server-id=$((200 + ${BASH_REMATCH[1]})) >> /mnt/mysql/conf.d/server-id.cnf
+          cp /mnt/config-map/slave.cnf /mnt/mysql/conf.d/
+          cp /mnt/config-map/my.cnf /mnt/mysql
+        volumeMounts:
+        - name: conf
+          mountPath: /mnt/mysql
+        - name: config-map
+          mountPath: /mnt/config-map
+      - name: clone-mysql
+        image: percona-xtrabackup:8.0
+        command:
+        - bash
+        - "-c"
+        - |
+          set -ex
+          [[ -f /var/lib/mysql/xtrabackup_binlog_info ]] && exit 0
+          [[ $HOSTNAME =~ -([0-9]+)$ ]] || exit 1
+          if [[ ${BASH_REMATCH[1]} -eq 0 ]]; then
+            ncat --recv-only mysql-master-0.mysql-master 3307 | xbstream -x -C /var/lib/mysql
+          else
+            ncat --recv-only mysql-slave-$((${BASH_REMATCH[1]}-1)).mysql-slave 3307 | xbstream -x -C /var/lib/mysql
+          fi
+
+          ls -l /var/lib/mysql
+          xtrabackup --prepare --target-dir=/var/lib/mysql
+        volumeMounts:
+        - name: mysql-slave-data
+          mountPath: /var/lib/mysql
+        - name: conf
+          mountPath: /etc/mysql
+      containers:
+        - name: mysql
+          image: mysql:8.0.32
+          ports:
+            - containerPort: 3306
+          volumeMounts:
+          - name: mysql-slave-data
+            mountPath: /var/lib/mysql
+          - name: conf
+            mountPath: /etc/mysql
+          resources:
+            requests:
+              cpu: 500m
+              memory: 1Gi
+          livenessProbe:
+            exec:
+              command: ["mysqladmin", "ping"]
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+          readinessProbe:
+            exec:
+              command: ["mysql", "-h127.0.0.1", "-uroot", "-pmysql_pass", "-e", "SELECT 1"]
+            initialDelaySeconds: 5
+            periodSeconds: 2
+            timeoutSeconds: 1
+          env:
+            - name: MYSQL_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mysql-account-password
+                  key: admin-password
+        - name: xtrabackup
+          image: percona-xtrabackup:8.0
+          ports:
+            - containerPort: 3307
+          env: 
+            - name: REPLICATOR_ACCOUNT
+              valueFrom:
+                secretKeyRef:
+                  name: mysql-account-password
+                  key: replicator-account
+            - name: REPLICATOR_ACCOUNT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mysql-account-password
+                  key: replicator-password
+            - name: BACKUP_ACCOUNT
+              valueFrom:
+                secretKeyRef:
+                  name: mysql-account-password
+                  key: backuper-account
+            - name: BACKUP_ACCOUNT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mysql-account-password
+                  key: backuper-password
+            - name: ADMIN_ACCOUNT
+              valueFrom:
+                secretKeyRef:
+                  name: mysql-account-password
+                  key: admin-account
+            - name: ADMIN_ACCOUNT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mysql-account-password
+                  key: admin-password
+          command:
+          - bash
+          - "-c"
+          - |
+            set -ex
+            cd /var/lib/mysql
+            ls -l /var/lib/mysql
+            echo "Waiting for mysqld to be ready (accepting connections)"
+            until mysql -h 127.0.0.1 -ureadiness -preadiness -e "SELECT 1"; do sleep 1; done
+            if [[ -f xtrabackup_binlog_info ]]; then
+              echo "Initializing replication from clone position"
+              [[ `cat xtrabackup_binlog_info` =~ ^(.*?)[[:space:]]+(.*?)$ ]] || exit 1
+              echo "SET @@GLOBAL.GTID_PURGED='${BASH_REMATCH[2]}';" > set_gtid.sql
+            fi
+            echo "changing master..."
+            mysql -h 127.0.0.1 -uroot -p$(ADMIN_ACCOUNT_PASSWORD) <<EOF
+              $(<set_gtid.sql)
+              STOP SLAVE;
+              CHANGE MASTER TO
+              MASTER_HOST='mysql-master-0.mysql-master',
+              MASTER_USER='root',
+              MASTER_PASSWORD='$(REPLICATOR_ACCOUNT_PASSWORD)',
+              MASTER_CONNECT_RETRY=10,
+              master_auto_position = 1,
+              get_master_public_key=1;
+              RESET SLAVE;
+              START SLAVE;
+            EOF
+            exec ncat --listen --keep-open --send-only --max-conns=1 3307 -c \
+            "xtrabackup --backup --slave-info --stream=xbstream --host=127.0.0.1 --user=root --password=$(BACKUP_ACCOUNT_PASSWORD)"
+          volumeMounts:
+          - name: mysql-slave-data
+            mountPath: /var/lib/mysql
+          - name: conf
+            mountPath: /etc/mysql
+          resources:
+            requests:
+              cpu: 100m
+              memory: 100Mi
+      volumes:
+      - name: conf
+        emptyDir: {}
+      - name: config-map
+        configMap:
+          name: mysql
+      imagePullSecrets:
+        - name: image-repo-secret
+  volumeClaimTemplates:
+  - metadata:
+      name: mysql-slave-data
+    spec:
+      accessModes: ["ReadWriteOnce"]
+      storageClassName: mysql-local-storage
+      resources:
+        requests:
+          storage: 5Gi

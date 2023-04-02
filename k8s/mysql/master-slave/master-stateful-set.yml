@@ -1,0 +1,126 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: mysql-master
+  namespace: helloworld
+spec:
+  selector:
+    matchLabels:
+      app: mysql-master
+  serviceName: mysql-master
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: mysql-master
+    spec:
+      initContainers:
+      - name: init-mysql
+        image: mysql:8.0.32
+        command:
+        - bash
+        - "-c"
+        - |
+          set -ex
+          [[ $HOSTNAME =~ -([0-9]+)$ ]] || exit 1
+          mkdir -p /mnt/mysql/conf.d
+          echo [mysqld] > /mnt/mysql/conf.d/server-id.cnf
+          echo server-id=$((100 + ${BASH_REMATCH[1]})) >> /mnt/mysql/conf.d/server-id.cnf
+          cp /mnt/config-map/master.cnf /mnt/mysql/conf.d/
+          cp /mnt/config-map/my.cnf /mnt/mysql
+        volumeMounts:
+        - name: conf
+          mountPath: /mnt/mysql
+        - name: config-map
+          mountPath: /mnt/config-map
+        - name: mysql-initdb
+          mountPath: /docker-entrypoint-initdb.d
+      containers:
+        - name: mysql
+          image: mysql:8.0.32
+          ports:
+            - containerPort: 3306
+          volumeMounts:
+          - name: mysql-master-data
+            mountPath: /var/lib/mysql
+          - name: conf
+            mountPath: /etc/mysql
+          - name: mysql-initdb
+            mountPath: /docker-entrypoint-initdb.d
+          resources:
+            requests:
+              cpu: 500m
+              memory: 1Gi
+          livenessProbe:
+            exec:
+              command: ["mysqladmin", "ping"]
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+          readinessProbe:
+            exec:
+              command: ["mysql", "-h", "127.0.0.1", "-uroot", "-p${MYSQL_ROOT_PASSWORD}", "-e", "SELECT 1"]
+            initialDelaySeconds: 5
+            periodSeconds: 2
+            timeoutSeconds: 1
+          env:
+            - name: MYSQL_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mysql-account-password
+                  key: admin-password
+        - name: xtrabackup
+          image: percona-xtrabackup:8.0
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 3307
+          env:
+            - name: BACKUP_ACCOUNT
+              valueFrom:
+                secretKeyRef:
+                  name: mysql-account-password
+                  key: backuper-account
+            - name: BACKUP_ACCOUNT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mysql-account-password
+                  key: backuper-password
+          command:
+          - bash
+          - "-c"
+          - |
+            set -ex
+            cd /var/lib/mysql
+            ls -l /var/lib/mysql
+            [[ $HOSTNAME =~ -([0-9]+)$ ]] || exit 1
+            exec ncat --listen --keep-open --send-only --max-conns=1 3307 -c \
+              "xtrabackup --backup --slave-info --stream=xbstream --host=127.0.0.1 --user=root --password=mysql_pass"
+          volumeMounts:
+          - name: mysql-master-data
+            mountPath: /var/lib/mysql
+          - name: conf
+            mountPath: /etc/mysql
+          resources:
+            requests:
+              cpu: 100m
+              memory: 100Mi
+      volumes:
+      - name: conf
+        emptyDir: {}
+      - name: config-map
+        configMap:
+          name: mysql
+      - name: mysql-initdb
+        configMap:
+          name: initdb
+      imagePullSecrets:
+        - name: image-repo-secret
+  volumeClaimTemplates:
+  - metadata:
+      name: mysql-master-data
+    spec:
+      accessModes: ["ReadWriteOnce"]
+      storageClassName: mysql-local-storage
+      resources:
+        requests:
+          storage: 5Gi
