@@ -1,0 +1,60 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: redis-app
+  namespace: helloworld
+spec:
+  selector:
+    matchLabels:
+      app: redis-cluster-app
+  serviceName: redis-cluster-app
+  replicas: 6
+  template:
+    metadata:
+      labels:
+        app: redis-cluster-app
+    spec:
+      containers:
+      - name: redis
+        image: redis:7.2-rc
+        command:
+          - "redis-server"
+        args:
+          - "/etc/redis/redis.conf"
+          - "--protected-mode"
+          - "no"
+          - "--cluster-announce-ip"
+          - " $(MY_POD_IP)"
+        ports:
+          - name: redis
+            containerPort: 6379
+            protocol: TCP
+          - name: cluster
+            containerPort: 16379
+            protocol: TCP
+        volumeMounts:
+          - name: redis-conf
+            mountPath: /etc/redis
+          - name: redis-data
+            mountPath: /var/lib/redis
+        env:
+        - name: MY_POD_IP
+          valueFrom:
+            fieldRef:
+              fieldPath: status.podIP
+      volumes:
+      - name: redis-conf
+        configMap:
+          name: redis-conf
+          items:
+            - key: redis.conf
+              path: redis.conf
+  volumeClaimTemplates:
+  - metadata:
+      name: redis-data
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      storageClassName: redis-storage-class
+      resources:
+        requests:
+          storage: 1Gi
