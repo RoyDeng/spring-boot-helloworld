@@ -6,13 +6,13 @@ metadata:
 spec:
   selector:
     matchLabels:
-      app: mysql-slave
-  serviceName: mysql-slave
+      app: mysql
+  serviceName: mysql-service
   replicas: 1
   template:
     metadata:
       labels:
-        app: mysql-slave
+        app: mysql
     spec:
       initContainers:
       - name: init-mysql
@@ -43,15 +43,15 @@ spec:
           [[ -f /var/lib/mysql/xtrabackup_binlog_info ]] && exit 0
           [[ $HOSTNAME =~ -([0-9]+)$ ]] || exit 1
           if [[ ${BASH_REMATCH[1]} -eq 0 ]]; then
-            ncat --recv-only mysql-master-0.mysql-master 3307 | xbstream -x -C /var/lib/mysql
+            ncat --recv-only mysql-master-0.mysql-service 3307 | xbstream -x -C /var/lib/mysql
           else
-            ncat --recv-only mysql-slave-$((${BASH_REMATCH[1]}-1)).mysql-slave 3307 | xbstream -x -C /var/lib/mysql
+            ncat --recv-only mysql-slave-$((${BASH_REMATCH[1]}-1)).mysql-service 3307 | xbstream -x -C /var/lib/mysql
           fi
 
           ls -l /var/lib/mysql
           xtrabackup --prepare --target-dir=/var/lib/mysql
         volumeMounts:
-        - name: mysql-slave-data
+        - name: data
           mountPath: /var/lib/mysql
         - name: conf
           mountPath: /etc/mysql
@@ -61,7 +61,7 @@ spec:
           ports:
             - containerPort: 3306
           volumeMounts:
-          - name: mysql-slave-data
+          - name: data
             mountPath: /var/lib/mysql
           - name: conf
             mountPath: /etc/mysql
@@ -153,7 +153,7 @@ spec:
             exec ncat --listen --keep-open --send-only --max-conns=1 3307 -c \
             "xtrabackup --backup --slave-info --stream=xbstream --host=127.0.0.1 --user=root --password=$(BACKUP_ACCOUNT_PASSWORD)"
           volumeMounts:
-          - name: mysql-slave-data
+          - name: data
             mountPath: /var/lib/mysql
           - name: conf
             mountPath: /etc/mysql
@@ -171,7 +171,7 @@ spec:
         - name: image-repo-secret
   volumeClaimTemplates:
   - metadata:
-      name: mysql-slave-data
+      name: data
     spec:
       accessModes: ["ReadWriteOnce"]
       storageClassName: mysql-local-storage

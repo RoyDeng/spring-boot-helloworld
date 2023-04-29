@@ -12,45 +12,45 @@ spring:
       master:
         name: master
         driver-class-name: com.mysql.jdbc.Driver
-        url: jdbc:mysql://${MYSQL_HOST:localhost}:3306/${MYSQL_DATABASE_NAME}?useUnicode=true&characterEncoding=UTF-8&serverTimezone=UTC
-        username: ${MYSQL_USER}
+        url: jdbc:mysql://mysql-master-0.mysql-service:3306/${MYSQL_DATABASE_NAME}?useUnicode=true&characterEncoding=UTF-8&serverTimezone=UTC
+        username: ${MYSQL_USERNAME}
         password: ${MYSQL_PASSWORD}
       slave:
         name: slave
         driver-class-name: com.mysql.jdbc.Driver
-        url: jdbc:mysql://${MYSQL_HOST:localhost}:3306/${MYSQL_DATABASE_NAME}?useUnicode=true&characterEncoding=UTF-8&serverTimezone=UTC
-        username: ${MYSQL_USER}
+        url: jdbc:mysql://mysql-slave-0.mysql-service:3306/${MYSQL_DATABASE_NAME}?useUnicode=true&characterEncoding=UTF-8&serverTimezone=UTC
+        username: ${MYSQL_USERNAME}
         password: ${MYSQL_PASSWORD}
-  redis:
-    cluster:
-      nodes: redis-service.redis-cluster.svc.cluster.local:6379
-      timeout: 2000
-      max-redirects: 7
+  data:
+    redis:
+      connect-timeout: 2000
+      cluster:
+        nodes: redis-service.helloworld.svc.cluster.local:6379
+        max-redirects: 7
   rabbitmq:
-    host: 
-    port: 5672
-    username: 
-    password: 
-    publisher-confirms: true
+    addresses: rabbitmq-0.rabbitmq.helloworld.svc.cluster.local:5672,rabbitmq-1.rabbitmq.helloworld.svc.cluster.local:5672,rabbitmq-2.rabbitmq.helloworld.svc.cluster.local:5672
+    address-shuffle-mode: inorder
+    username: ${RABBITMQ_USER}
+    password: ${RABBITMQ_PASSWORD}
+    publisher-confirm-type: correlated
     publisher-returns: true
     listener:
       simple:
         acknowledge-mode: manual
         prefetch: 100
   mail:
-    host: 
-    username: 
-    password: 
-    from: 
+    host: smtp.mailgun.org
+    port: 587
+    username: ${MAILGUN_USERNAME}
+    password: ${MAILGUN_PASSWORD}
     properties:
-      mail.smtp.auth: true
+      mail.transport.protocol: smtp
       mail.smtp.starttls.enable: true
       mail.smtp.starttls.required: true
-      mail.smtp.socketFactory.port: 465
-      mail.smtp.socketFactory.class: javax.net.ssl.SSLSocketFactory
-      mail.smtp.socketFactory.fallback: false
-    port: 465
-    protocol: smtp
+      mail.smtp.auth: true
+      mail.smtp.from: xxx
+    default-encoding: UTF-8
+    test-connection: false
 logging:
   config: classpath:logback-spring.xml
 helloworld:

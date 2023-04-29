@@ -17,7 +17,7 @@ import com.roydevelop.helloworld.service.MessageService;
 public class MailUtil {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
-    @Value("$spring.mail.from")
+    @Value("$spring.mail.properties.mail.smtp.from")
     private String from;
 
     @Autowired

@@ -6,13 +6,13 @@ metadata:
 spec:
   selector:
     matchLabels:
-      app: mysql-master
-  serviceName: mysql-master
+      app: mysql
+  serviceName: mysql-service
   replicas: 1
   template:
     metadata:
       labels:
-        app: mysql-master
+        app: mysql
     spec:
       initContainers:
       - name: init-mysql
@@ -41,7 +41,7 @@ spec:
           ports:
             - containerPort: 3306
           volumeMounts:
-          - name: mysql-master-data
+          - name: data
             mountPath: /var/lib/mysql
           - name: conf
             mountPath: /etc/mysql
@@ -96,7 +96,7 @@ spec:
             exec ncat --listen --keep-open --send-only --max-conns=1 3307 -c \
               "xtrabackup --backup --slave-info --stream=xbstream --host=127.0.0.1 --user=root --password=mysql_pass"
           volumeMounts:
-          - name: mysql-master-data
+          - name: data
             mountPath: /var/lib/mysql
           - name: conf
             mountPath: /etc/mysql
@@ -117,7 +117,7 @@ spec:
         - name: image-repo-secret
   volumeClaimTemplates:
   - metadata:
-      name: mysql-master-data
+      name: data
     spec:
       accessModes: ["ReadWriteOnce"]
       storageClassName: mysql-local-storage
