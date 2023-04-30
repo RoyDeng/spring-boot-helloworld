@@ -1,8 +1,8 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: helloworld-app-service
-  namespace: helloworld-cluster
+  name: helloworld-service
+  namespace: helloworld
 spec:
   selector:
     app: helloworld-app

@@ -85,7 +85,7 @@ spec:
             - name: MYSQL_ROOT_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: mysql-account-password
+                  name: mysql-secret
                   key: admin-password
         - name: xtrabackup
           image: percona-xtrabackup:8.0
@@ -95,32 +95,32 @@ spec:
             - name: REPLICATOR_ACCOUNT
               valueFrom:
                 secretKeyRef:
-                  name: mysql-account-password
+                  name: mysql-secret
                   key: replicator-account
             - name: REPLICATOR_ACCOUNT_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: mysql-account-password
+                  name: mysql-secret
                   key: replicator-password
             - name: BACKUP_ACCOUNT
               valueFrom:
                 secretKeyRef:
-                  name: mysql-account-password
+                  name: mysql-secret
                   key: backuper-account
             - name: BACKUP_ACCOUNT_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: mysql-account-password
+                  name: mysql-secret
                   key: backuper-password
             - name: ADMIN_ACCOUNT
               valueFrom:
                 secretKeyRef:
-                  name: mysql-account-password
+                  name: mysql-secret
                   key: admin-account
             - name: ADMIN_ACCOUNT_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: mysql-account-password
+                  name: mysql-secret
                   key: admin-password
           command:
           - bash

@@ -49,17 +49,17 @@ spec:
             valueFrom:
               secretKeyRef:
                 name: rabbitmq-secret
-                key: RABBITMQ_DEFAULT_PASS
+                key: default-password
           - name: RABBITMQ_DEFAULT_USER
             valueFrom:
               secretKeyRef:
                 name: rabbitmq-secret
-                key: RABBITMQ_DEFAULT_USER
+                key: default-user
           - name: RABBITMQ_ERLANG_COOKIE
             valueFrom:
               secretKeyRef:
                 name: rabbitmq-secret
-                key: RABBITMQ_ERLANG_COOKIE
+                key: erlang-cookie
           - name: MY_POD_NAME
             valueFrom:
               fieldRef:
@@ -77,8 +77,6 @@ spec:
             value: rabbit@$(MY_POD_NAME).$(K8S_SERVICE_NAME).$(MY_POD_NAMESPACE).svc.cluster.local
           - name: K8S_HOSTNAME_SUFFIX
             value: .$(K8S_SERVICE_NAME).$(MY_POD_NAMESPACE).svc.cluster.local
-          - name: RABBITMQ_ERLANG_COOKIE
-            value: "rabbitcluster"
       volumes:
         - name: config-volume
           configMap:

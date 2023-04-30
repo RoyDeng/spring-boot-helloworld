@@ -30,7 +30,7 @@ spring:
   rabbitmq:
     addresses: rabbitmq-0.rabbitmq.helloworld.svc.cluster.local:5672,rabbitmq-1.rabbitmq.helloworld.svc.cluster.local:5672,rabbitmq-2.rabbitmq.helloworld.svc.cluster.local:5672
     address-shuffle-mode: inorder
-    username: ${RABBITMQ_USER}
+    username: ${RABBITMQ_USERNAME}
     password: ${RABBITMQ_PASSWORD}
     publisher-confirm-type: correlated
     publisher-returns: true
@@ -48,7 +48,7 @@ spring:
       mail.smtp.starttls.enable: true
       mail.smtp.starttls.required: true
       mail.smtp.auth: true
-      mail.smtp.from: xxx
+      mail.smtp.from: test@gmail.com
     default-encoding: UTF-8
     test-connection: false
 logging:

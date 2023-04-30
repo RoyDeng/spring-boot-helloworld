@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: helloworld-deployment
-  namespace: helloworld-cluster
+  namespace: helloworld
   labels:
     app: helloworld-app
 spec:
@@ -21,12 +21,36 @@ spec:
         ports:
           - containerPort: 8080
         env:
-          - name: MYSQL_HOST
-            value: mysql
           - name: MYSQL_DATABASE_NAME
             value: helloworlddb
           - name: MYSQL_USERNAME
-            value: 
+            valueFrom:
+              secretKeyRef:
+                name: app-secret
+                key: mysql-account
           - name: MYSQL_PASSWORD
-            value: 
+            valueFrom:
+              secretKeyRef:
+                name: app-secret
+                key: mysql-password
+          - name: RABBITMQ_USERNAME
+            valueFrom:
+              secretKeyRef:
+                name: app-secret
+                key: rabbitmq-user
+          - name: RABBITMQ_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: app-secret
+                key: rabbitmq-password
+          - name: MAILGUN_USERNAME
+            valueFrom:
+              secretKeyRef:
+                name: app-secret
+                key: mailgun-user
+          - name: MAILGUN_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: app-secret
+                key: mailgun-password
         imagePullPolicy: Always

@@ -2,7 +2,7 @@ apiVersion: networking.k8s.io/v1beta1
 kind: Ingress
 metadata:
   name: app-ingress
-  namespace: helloworld-cluster
+  namespace: helloworld
 spec:
   rules:
   - host: k8s-test.com
@@ -10,5 +10,5 @@ spec:
       paths:
       - path: /test-redis
         backend:
-          serviceName: helloworld-app-service
+          serviceName: helloworld-service
           servicePort: 80
