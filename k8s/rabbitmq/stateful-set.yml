@@ -4,7 +4,7 @@ metadata:
   name: rabbitmq
   namespace: helloworld
 spec:
-  serviceName: rabbitmq
+  serviceName: rabbitmq-service
   replicas: 3
   selector:
     matchLabels:
@@ -60,23 +60,23 @@ spec:
               secretKeyRef:
                 name: rabbitmq-secret
                 key: erlang-cookie
-          - name: MY_POD_NAME
+          - name: POD_NAME
             valueFrom:
               fieldRef:
                 apiVersion: v1
                 fieldPath: metadata.name
-          - name: MY_POD_NAMESPACE
+          - name: POD_NAMESPACE
             valueFrom:
               fieldRef:
                 fieldPath: metadata.namespace
+          - name: K8S_SERVICE_NAME
+            value: rabbitmq-service
           - name: RABBITMQ_USE_LONGNAME
             value: "true"
-          - name: K8S_SERVICE_NAME
-            value: rabbitmq
           - name: RABBITMQ_NODENAME
-            value: rabbit@$(MY_POD_NAME).$(K8S_SERVICE_NAME).$(MY_POD_NAMESPACE).svc.cluster.local
+            value: rabbit@$(POD_NAME).$(K8S_SERVICE_NAME).$(POD_NAMESPACE).svc.cluster.local
           - name: K8S_HOSTNAME_SUFFIX
-            value: .$(K8S_SERVICE_NAME).$(MY_POD_NAMESPACE).svc.cluster.local
+            value: .$(K8S_SERVICE_NAME).$(POD_NAMESPACE).svc.cluster.local
       volumes:
         - name: config-volume
           configMap:

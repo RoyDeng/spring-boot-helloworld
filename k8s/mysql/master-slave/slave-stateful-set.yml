@@ -34,7 +34,7 @@ spec:
         - name: config-map
           mountPath: /mnt/config-map
       - name: clone-mysql
-        image: percona-xtrabackup:8.0
+        image: gcr.io/PROJECT_ID/IMAGE:TAG
         command:
         - bash
         - "-c"
@@ -88,7 +88,7 @@ spec:
                   name: mysql-secret
                   key: admin-password
         - name: xtrabackup
-          image: percona-xtrabackup:8.0
+          image: gcr.io/PROJECT_ID/IMAGE:TAG
           ports:
             - containerPort: 3307
           env: 
@@ -173,8 +173,10 @@ spec:
   - metadata:
       name: data
     spec:
-      accessModes: ["ReadWriteOnce"]
-      storageClassName: mysql-local-storage
+      storageClassName: mysql-storage-class
+      volumeMode: Filesystem
+      accessModes:
+      - ReadWriteOnce
       resources:
         requests:
           storage: 5Gi
