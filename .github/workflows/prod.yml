@@ -1,0 +1,106 @@
+name: Build and Deploy to GKE
+
+on:
+  push:
+    branches:
+    - master
+
+env:
+  PROJECT_ID: ${{ secrets.GKE_PROJECT }}
+  GKE_CLUSTER: helloworld-cluster
+  GKE_ZONE: asia-east1-a
+  REDIS_STATEFULSET_NAME: redis-statefulset
+  RABBITMQ_STATEFULSET_NAME: rabbitmq
+  MYSQL_MASTER_STATEFULSET_NAME: mysql-master
+  MYSQL_SLAVE_STATEFULSET_NAME: mysql-slave
+  DEPLOYMENT_NAME: helloworld-app
+  IMAGE: helloworld-app-image
+
+jobs:
+  setup-build-publish-deploy:
+    name: Setup, Build, Publish, and Deploy
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+
+    # Setup gcloud CLI
+    - uses: google-github-actions/setup-gcloud@master
+      with:
+        version: '290.0.1'
+        service_account_key: ${{ secrets.GKE_SA_KEY }}
+        project_id: ${{ secrets.GKE_PROJECT }}
+
+    # Configure Docker to use the gcloud command-line tool as a credential
+    # helper for authentication
+    - run: |-
+      gcloud --quiet auth configure-docker
+
+    # Get the GKE credentials so we can deploy to the cluster
+    - run: |-
+      gcloud container clusters get-credentials "$GKE_CLUSTER" --zone "$GKE_ZONE"
+
+    # Set up kustomize
+    - name: Set up Kustomize
+      run: |-
+        curl -sfLo kustomize https://github.com/kubernetes-sigs/kustomize/releases/download/v3.1.0/kustomize_3.1.0_linux_amd64
+        chmod u+x ./kustomize
+
+    # Deploy the Redis to the GKE cluster
+    - name: Deploy the Redis cluster
+      run: |-
+        kubectl apply -f ./k8s/redis
+        kubectl rollout status statefulset $REDIS_STATEFULSET_NAME
+        kubectl get services -o wide
+
+    # Deploy the RabbitMQ to the GKE cluster
+    - name: Deploy the RabbitMQ cluster
+      run: |-
+        kubectl apply -f ./k8s/rabbitmq
+        kubectl rollout status statefulset $RABBITMQ_STATEFULSET_NAME
+        kubectl get services -o wide
+
+    # Build the Docker image of percona-xtrabackup
+    - name: Build the percona-xtrabackup
+      run: |-
+        docker build \
+          --tag "gcr.io/$PROJECT_ID/percona-xtrabackup:8.0" \
+          ./k8s/image/percona-xtrabackup
+
+    # Push the Docker image of percona-xtrabackup to Google Container Registry
+    - name: Publish the percona-xtrabackup
+      run: |-
+        docker push "gcr.io/$PROJECT_ID/percona-xtrabackup:8.0"
+
+    # Deploy the MySQL to the GKE cluster
+    - name: Deploy the MySQL Master-Slave Replication
+      run: |-
+        kubectl apply -f ./k8s/mysql
+        ./kustomize edit set image gcr.io/PROJECT_ID/IMAGE:TAG=gcr.io/$PROJECT_ID/percona-xtrabackup:8.0
+        ./kustomize build ./k8s/mysql/master-slave | kubectl apply -f -
+        kubectl rollout status statefulset $MYSQL_MASTER_STATEFULSET_NAME
+        kubectl rollout status statefulset $MYSQL_SLAVE_STATEFULSET_NAME
+        kubectl get services -o wide
+
+    # Build the Docker image
+    - name: Build the App
+      run: |-
+        docker build \
+          --tag "gcr.io/$PROJECT_ID/$IMAGE:$GITHUB_SHA" \
+          --build-arg GITHUB_SHA="$GITHUB_SHA" \
+          --build-arg GITHUB_REF="$GITHUB_REF" \
+          .
+
+    # Push the Docker image to Google Container Registry
+    - name: Publish the App
+      run: |-
+        docker push "gcr.io/$PROJECT_ID/$IMAGE:$GITHUB_SHA"
+
+    # Deploy the Docker image to the GKE cluster
+    - name: Deploy the App
+      run: |-
+        ./kustomize edit set image gcr.io/PROJECT_ID/IMAGE:TAG=gcr.io/$PROJECT_ID/$IMAGE:$GITHUB_SHA
+        ./kustomize build ./k8s/app | kubectl apply -f -
+        kubectl rollout status deployment/$DEPLOYMENT_NAME
+        kubectl get services -o wide
