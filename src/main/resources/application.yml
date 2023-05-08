@@ -8,19 +8,18 @@ spring:
     database-platform: org.hibernate.dialect.MySQL8Dialect
   datasource:
     type: com.zaxxer.hikari.HikariDataSource
-    hikari:
-      master:
-        name: master
-        driver-class-name: com.mysql.jdbc.Driver
-        url: jdbc:mysql://mysql-master-0.mysql-service:3306/${MYSQL_DATABASE_NAME}?useUnicode=true&characterEncoding=UTF-8&serverTimezone=UTC
-        username: ${MYSQL_USERNAME}
-        password: ${MYSQL_PASSWORD}
-      slave:
-        name: slave
-        driver-class-name: com.mysql.jdbc.Driver
-        url: jdbc:mysql://mysql-slave-0.mysql-service:3306/${MYSQL_DATABASE_NAME}?useUnicode=true&characterEncoding=UTF-8&serverTimezone=UTC
-        username: ${MYSQL_USERNAME}
-        password: ${MYSQL_PASSWORD}
+    master:
+      name: master
+      driver-class-name: com.mysql.jdbc.Driver
+      url: jdbc:mysql://mysql-master-0.mysql-service.helloworld.svc.cluster.local:3306/${MYSQL_DATABASE_NAME}?useUnicode=true&characterEncoding=UTF-8&serverTimezone=UTC
+      username: ${MYSQL_USERNAME}
+      password: ${MYSQL_PASSWORD}
+    slave:
+      name: slave
+      driver-class-name: com.mysql.jdbc.Driver
+      url: jdbc:mysql://mysql-slave-0.mysql-service.helloworld.svc.cluster.local:3306/${MYSQL_DATABASE_NAME}?useUnicode=true&characterEncoding=UTF-8&serverTimezone=UTC
+      username: ${MYSQL_USERNAME}
+      password: ${MYSQL_PASSWORD}
   data:
     redis:
       connect-timeout: 2000
@@ -28,7 +27,7 @@ spring:
         nodes: redis-service.helloworld.svc.cluster.local:6379
         max-redirects: 7
   rabbitmq:
-    addresses: rabbitmq-0.rabbitmq.helloworld.svc.cluster.local:5672,rabbitmq-1.rabbitmq.helloworld.svc.cluster.local:5672,rabbitmq-2.rabbitmq.helloworld.svc.cluster.local:5672
+    addresses: rabbitmq-0.rabbitmq-service.helloworld.svc.cluster.local:5672,rabbitmq-1.rabbitmq-service.helloworld.svc.cluster.local:5672,rabbitmq-2.rabbitmq-service.helloworld.svc.cluster.local:5672
     address-shuffle-mode: inorder
     username: ${RABBITMQ_USERNAME}
     password: ${RABBITMQ_PASSWORD}
