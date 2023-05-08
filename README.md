@@ -1,7 +1,14 @@
 # Spring Boot on Kubernetes
 
+## Overview
 
-### Before we start
+![Architecture](architecture.png)
+
+Deploy backend cluster services in the cloud via Kubernetes.
+
+Read more about the techniques used [here](https://github.com/RoyDeng/spring-boot-helloworld/wiki).
+
+## Before we start
 
 ```bash
 # With Minikube installed, you can create a cluster.
@@ -12,27 +19,24 @@ kubectl cluster-info
 
 # Make sure that your Minikube cluster is running.
 minikube status
+
+# We need to create a namespace named helloworld first.
+kubectl create namespace helloworld
 ```
 
-#### You can watch how a new Pod is created with:
+## MySQL Master Slave
+
+### How to deploy it
 
 ```bash
-kubectl get pods -l app=helloworld --watch
-```
-
-### MySQL Master Slave
-
-#### How to deploy it
-
-```bash
-# Create storage directories for `Persistent Volume` on the local node.
+# Create storage directories for Persistent Volume on the local node.
 minikube ssh
 sudo mkdir data && cd $_ && sudo mkdir k8s && cd $_ && sudo mkdir mysql && cd $_ && sudo mkdir mysql-0 && sudo mkdir mysql-1
 
-# Build percona-xtrabackup image in local. 
-docker build -t percona-xtrabackup:8.0 ./k8s/image/percona-xtrabackup
+# Build the Docker image of percona-xtrabackup in local. 
+docker build -t "gcr.io/roy-deng-side-project/percona-xtrabackup:8.0" ./k8s/image/percona-xtrabackup
 
-# Load a Docker image from your local machine into the Minikube cluster
+# Load a Docker image from your local machine into the Minikube cluster.
 minikube image load percona-xtrabackup:8.0
 
 # Store accounts in secret.
@@ -52,11 +56,9 @@ kubectl apply -f ./k8s/mysql/master-slave/master-stateful-set.yml
 kubectl apply -f ./k8s/mysql/master-slave/slave-stateful-set.yml
 ```
 
-kubectl create namespace helloworld
+## Redis Cluster
 
-### Redis Cluster
-
-#### How to deploy it
+### How to deploy it
 
 ```bash
 # Deploy congig.
@@ -78,9 +80,9 @@ kubectl get pods -l app=redis-cluster-app -o jsonpath='{range.items[*]}{.status.
 kubectl apply -f ./k8s/redis/service.yml
 ```
 
-### RabbitMQ Cluster
+## RabbitMQ Cluster
 
-#### How to deploy it
+### How to deploy it
 
 ```bash
 # Mount the configuration file into the rabbitmq container by configuring configMap.
@@ -93,19 +95,18 @@ kubectl apply -f ./k8s/rabbitmq/secret.yml
 kubectl apply -f ./k8s/rabbitmq/rbac.yml
 
 # Define headless service as the service entry of statefulset.
-kubectl apply -f ./k8s/rabbitmq/serive.yml
+kubectl apply -f ./k8s/rabbitmq/service.yml
 
 # Deploy using StatefulSet and use dynamic storage volumes to save data.
 kubectl apply -f ./k8s/rabbitmq/stateful-set.yml
 ```
 
-### Spring Boot
+## Spring Boot
 
-#### How to deploy it locally
+### How to deploy it locally
 
 ```bash
-
-docker build -t helloworld-java .
+docker build -t helloworld-app .
 
 docker images
 
@@ -113,20 +114,20 @@ docker network create helloworld
 
 docker run --name=mysql --rm --network=helloworld --hostname mysql -e MYSQL_DATABASE=helloworlddb -e MYSQL_ROOT_PASSWORD={MYSQL_ROOT_PASSWORD} mysql
 
-docker run --name=helloworld-java --rm --network=helloworld -p 8080:8080 -e MYSQL_URL=mysql://mysql:3306/helloworlddb helloworld-java
+docker run --name=helloworld-app --rm --network=helloworld -p 8080:8080 -e MYSQL_URL=mysql://mysql:3306/helloworlddb helloworld-app
 ```
 
-#### How to deploy on kubernetes
+### How to deploy on kubernetes
 
 ```bash
 # You have to authorise Docker to connect to the Docker Hub account.
 docker login
 
 # To rename your image according to this format.
-docker tag knote-java <username>/helloworld-java:1.0.0
+docker tag knote-java <username>/helloworld-app:1.0.0
 
 # Now you can upload your image to docker hub.
-docker push username/helloworld-java:1.0.0
+docker push username/helloworld-app:1.0.0
 
 # Then submit your resource definitions to kubernetes.
 kubectl apply -f k8s
@@ -135,14 +136,20 @@ kubectl apply -f k8s
 minikube service helloworld --url
 ```
 
-#### How to scale the app
+### You can watch how a new Pod is created with:
+
+```bash
+kubectl get pods -l app=helloworld-app --watch
+```
+
+### How to scale the app
 
 ```bash
 # Kubernetes makes it very easy to increase the number of replicas to 2.
-kubectl scale --replicas=2 deployment/helloworld
+kubectl scale --replicas=2 deployment/helloworld-deployment
 ```
 
-### How to debug
+## How to debug
 
 ```bash
 # Watch your Pods coming alive.
