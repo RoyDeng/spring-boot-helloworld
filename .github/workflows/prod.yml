@@ -35,11 +35,11 @@ jobs:
     # Configure Docker to use the gcloud command-line tool as a credential
     # helper for authentication
     - run: |-
-      gcloud --quiet auth configure-docker
+        gcloud --quiet auth configure-docker
 
     # Get the GKE credentials so we can deploy to the cluster
     - run: |-
-      gcloud container clusters get-credentials "$GKE_CLUSTER" --zone "$GKE_ZONE"
+        gcloud container clusters get-credentials "$GKE_CLUSTER" --zone "$GKE_ZONE"
 
     # Set up kustomize
     - name: Set up Kustomize
