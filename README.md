@@ -20,8 +20,11 @@ kubectl cluster-info
 # Make sure that your Minikube cluster is running.
 minikube status
 
-# We need to create a namespace named helloworld first.
-kubectl create namespace helloworld
+# We need to create namespaces first.
+kubectl create namespace app
+kubectl create namespace data
+kubectl create namespace rabbitmq
+kubectl create namespace redis
 ```
 
 ## MySQL Master Slave
@@ -43,7 +46,7 @@ minikube image load percona-xtrabackup:8.0
 kubectl apply -f ./k8s/mysql/secret.yml
 
 # Deploy storage.
-kubectl apply -f ./k8s/mysql/master-slave/pv.yml
+kubectl apply -f ./k8s/mysql/master-slave/storageclass.yml
 
 # Deploy basic service.
 kubectl apply -f ./k8s/mysql/master-slave/config-map.yml
@@ -74,7 +77,7 @@ kubectl apply -f ./k8s/redis/headless-service.yml
 kubectl apply -f ./k8s/redis/stateful-set.yml
 
 # Get pod ip.
-kubectl get pods -l app=redis-cluster-app -o jsonpath='{range.items[*]}{.status.podIP}:6379 ' -n helloworld
+kubectl get pods -l app=redis-cluster-app -o jsonpath='{range.items[*]}{.status.podIP}:6379 ' -n redis
 
 # Deploy service.
 kubectl apply -f ./k8s/redis/service.yml
@@ -133,7 +136,7 @@ docker push username/helloworld-app:1.0.0
 kubectl apply -f k8s
 
 # In Minikube, a Service can be accessed.
-minikube service helloworld --url
+minikube service app-service --url
 ```
 
 ### You can watch how a new Pod is created with:
@@ -146,7 +149,7 @@ kubectl get pods -l app=helloworld-app --watch
 
 ```bash
 # Kubernetes makes it very easy to increase the number of replicas to 2.
-kubectl scale --replicas=2 deployment/helloworld-deployment
+kubectl scale --replicas=2 deployment/app-deployment
 ```
 
 ## How to debug
@@ -155,11 +158,11 @@ kubectl scale --replicas=2 deployment/helloworld-deployment
 # Watch your Pods coming alive.
 kubectl get pods --watch
 
-kubectl get pod -n helloworld
+kubectl get pod -n data
 
-kubectl describe pod mysql-master-0 -n helloworld
+kubectl describe pod mysql-master-0 -n data
 
-kubectl logs mysql-master-0 -c xtrabackup -n helloworld
+kubectl logs mysql-master-0 -c xtrabackup -n data
 ```
 
 ##### Tags: `Spring Boot` `MySQL` `RabbitMQ` `Redis` `Kubernetes` `Docker`
