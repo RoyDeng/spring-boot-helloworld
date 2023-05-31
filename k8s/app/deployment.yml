@@ -1,8 +1,8 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: helloworld-deployment
-  namespace: helloworld
+  name: app-deployment
+  namespace: app
   labels:
     app: helloworld-app
 spec:

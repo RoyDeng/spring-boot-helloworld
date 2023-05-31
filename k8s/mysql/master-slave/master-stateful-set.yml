@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: StatefulSet
 metadata:
   name: mysql-master
-  namespace: helloworld
+  namespace: data
 spec:
   selector:
     matchLabels:
@@ -70,7 +70,7 @@ spec:
                   name: mysql-secret
                   key: admin-password
         - name: xtrabackup
-          image: gcr.io/PROJECT_ID/IMAGE:TAG
+          image: gcr.io/PROJECT_ID/PERCONA_XTRABACKUP_IMAGE:TAG
           ports:
             - containerPort: 3307
           env:

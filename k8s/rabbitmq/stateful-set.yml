@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: StatefulSet
 metadata:
   name: rabbitmq
-  namespace: helloworld
+  namespace: rabbitmq
 spec:
   serviceName: rabbitmq-service
   replicas: 3

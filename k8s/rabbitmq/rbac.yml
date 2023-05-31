@@ -2,13 +2,13 @@ apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: rabbitmq
-  namespace: helloworld
+  namespace: rabbitmq
 ---
 kind: Role
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
   name: rabbitmq-discovery-rbac
-  namespace: helloworld
+  namespace: rabbitmq
 rules:
 - apiGroups: [""]
   resources: ["endpoints"]
@@ -21,7 +21,7 @@ kind: RoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
   name: rabbitmq-discovery-rbac
-  namespace: helloworld
+  namespace: rabbitmq
 subjects:
 - kind: ServiceAccount
   name: rabbitmq

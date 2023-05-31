@@ -1,15 +1,15 @@
 apiVersion: networking.k8s.io/v1beta1
 kind: Ingress
 metadata:
-  name: helloworld-ingress
-  namespace: helloworld
+  name: app-ingress
+  namespace: app
 spec:
   rules:
   - http:
       paths:
       - backend:
           service:
-            name: helloworld-service
+            name: app-service
             port:
               number: 80
         path: /

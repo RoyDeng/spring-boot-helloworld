@@ -2,7 +2,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: redis-service
-  namespace: helloworld
+  namespace: redis
   labels:
     app: redis-cluster-app
 spec:

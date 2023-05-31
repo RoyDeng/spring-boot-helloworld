@@ -2,7 +2,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: mysql
-  namespace: helloworld
+  namespace: data
   labels:
     app: mysql
 data:
@@ -24,7 +24,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: initdb
-  namespace: helloworld
+  namespace: data
   labels:
     app: initdb
 data:

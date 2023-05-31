@@ -11,23 +11,23 @@ spring:
     master:
       name: master
       driver-class-name: com.mysql.jdbc.Driver
-      url: jdbc:mysql://mysql-master-0.mysql-service.helloworld.svc.cluster.local:3306/${MYSQL_DATABASE_NAME}?useUnicode=true&characterEncoding=UTF-8&serverTimezone=UTC
+      url: jdbc:mysql://mysql-master-0.mysql-service.data.svc.cluster.local:3306/${MYSQL_DATABASE_NAME}?useUnicode=true&characterEncoding=UTF-8&serverTimezone=UTC
       username: ${MYSQL_USERNAME}
       password: ${MYSQL_PASSWORD}
     slave:
       name: slave
       driver-class-name: com.mysql.jdbc.Driver
-      url: jdbc:mysql://mysql-slave-0.mysql-service.helloworld.svc.cluster.local:3306/${MYSQL_DATABASE_NAME}?useUnicode=true&characterEncoding=UTF-8&serverTimezone=UTC
+      url: jdbc:mysql://mysql-slave-0.mysql-service.data.svc.cluster.local:3306/${MYSQL_DATABASE_NAME}?useUnicode=true&characterEncoding=UTF-8&serverTimezone=UTC
       username: ${MYSQL_USERNAME}
       password: ${MYSQL_PASSWORD}
   data:
     redis:
       connect-timeout: 2000
       cluster:
-        nodes: redis-service.helloworld.svc.cluster.local:6379
+        nodes: redis-service.redis.svc.cluster.local:6379
         max-redirects: 7
   rabbitmq:
-    addresses: rabbitmq-0.rabbitmq-service.helloworld.svc.cluster.local:5672,rabbitmq-1.rabbitmq-service.helloworld.svc.cluster.local:5672,rabbitmq-2.rabbitmq-service.helloworld.svc.cluster.local:5672
+    addresses: rabbitmq-0.rabbitmq-service.rabbitmq.svc.cluster.local:5672,rabbitmq-1.rabbitmq-service.rabbitmq.svc.cluster.local:5672,rabbitmq-2.rabbitmq-service.rabbitmq.svc.cluster.local:5672
     address-shuffle-mode: inorder
     username: ${RABBITMQ_USERNAME}
     password: ${RABBITMQ_PASSWORD}
