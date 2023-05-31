@@ -13,6 +13,8 @@ env:
   RABBITMQ_STATEFULSET_NAME: rabbitmq
   MYSQL_MASTER_STATEFULSET_NAME: mysql-master
   MYSQL_SLAVE_STATEFULSET_NAME: mysql-slave
+  MYSQL_PRIMARY_STATEFULSET_NAME: mysql-primary
+  MYSQL_SECONDARY_STATEFULSET_NAME: mysql-secondary
   DEPLOYMENT_NAME: helloworld-app
   IMAGE: helloworld-app-image
 
@@ -61,26 +63,49 @@ jobs:
         kubectl rollout status statefulset $RABBITMQ_STATEFULSET_NAME
         kubectl get services -o wide
 
-    # Build the Docker image of percona-xtrabackup
-    - name: Build the percona-xtrabackup
+    # Build the Docker image of Percona XtraBackup
+    - name: Build the Percona XtraBackup
       run: |-
         docker build \
           --tag "gcr.io/$PROJECT_ID/percona-xtrabackup:8.0" \
           ./k8s/image/percona-xtrabackup
 
-    # Push the Docker image of percona-xtrabackup to Google Container Registry
-    - name: Publish the percona-xtrabackup
+    # Push the Docker image of Percona XtraBackup to Google Container Registry
+    - name: Publish the Percona XtraBackup
       run: |-
         docker push "gcr.io/$PROJECT_ID/percona-xtrabackup:8.0"
 
-    # Deploy the MySQL to the GKE cluster
-    - name: Deploy the MySQL Master-Slave Replication
+    # Build the Docker image of Percona Server for MySQL
+    - name: Build the Percona Server for MySQL
+      run: |-
+        docker build \
+          --tag "gcr.io/$PROJECT_ID/percona-mysql:8.0.32" \
+          ./k8s/image/percona-mysql
+
+    # Push the Docker image of Percona Server for MySQL to Google Container Registry
+    - name: Publish the Percona Server for MySQL
+      run: |-
+        docker push "gcr.io/$PROJECT_ID/percona-mysql:8.0.32"
+
+    # Deploy the MySQL Master Slave to the GKE cluster
+    - name: Deploy the MySQL Master Slave Cluster
       run: |-
         kubectl apply -f ./k8s/mysql
-        ./kustomize edit set image gcr.io/PROJECT_ID/IMAGE:TAG=gcr.io/$PROJECT_ID/percona-xtrabackup:8.0
+        ./kustomize edit set image gcr.io/PROJECT_ID/PERCONA_XTRABACKUP_IMAGE:TAG=gcr.io/$PROJECT_ID/percona-xtrabackup:8.0
         ./kustomize build ./k8s/mysql/master-slave | kubectl apply -f -
         kubectl rollout status statefulset $MYSQL_MASTER_STATEFULSET_NAME
         kubectl rollout status statefulset $MYSQL_SLAVE_STATEFULSET_NAME
+        kubectl get services -o wide
+
+    # Deploy the MySQL Innodb to the GKE cluster
+    - name: Deploy the MySQL Innodb Cluster
+      run: |-
+        kubectl apply -f ./k8s/mysql
+        ./kustomize edit set image gcr.io/PROJECT_ID/PERCONA_MYSQL_IMAGE:TAG=gcr.io/$PROJECT_ID/percona-mysql:8.0.32
+        ./kustomize edit set image gcr.io/PROJECT_ID/PERCONA_XTRABACKUP_IMAGE:TAG=gcr.io/$PROJECT_ID/percona-xtrabackup:8.0
+        ./kustomize build ./k8s/mysql/innodb | kubectl apply -f -
+        kubectl rollout status statefulset $MYSQL_PRIMARY_STATEFULSET_NAME
+        kubectl rollout status statefulset $MYSQL_SECONDARY_STATEFULSET_NAME
         kubectl get services -o wide
 
     # Build the Docker image
